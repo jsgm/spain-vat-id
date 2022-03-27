@@ -1,4 +1,5 @@
 # spain-vat-id
+![Build](https://github.com/jsgm/spain-vat-id/actions/workflows/rust.yml/badge.svg)
 [![Crate](https://img.shields.io/crates/v/spain-vat-id.svg)](https://crates.io/crates/spain-vat-id)
 [![Minimum rustc version](https://img.shields.io/badge/rustc-1.59+-lightgray.svg)](https://github.com/rust-random/rand#rust-version-requirements)
 
