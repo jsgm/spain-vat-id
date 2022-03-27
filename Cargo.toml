@@ -1,0 +1,17 @@
+[package]
+name = "spanish-vat-validator"
+authors = ["José Aguilera <hello@jsgm.dev>"]
+version = "0.1.0"
+edition = "2022"
+description = "Spanish VAT ID numbers validation/verification"
+license = "Apache-2.0"
+homepage = "https://github.com/jsgm/spanish-vat-validator"
+repository = "https://github.com/jsgm/spanish-vat-validator"
+keywords = [
+    "spain",
+    "nif",
+    "nie",
+    "dni",
+    "validator"
+]
+categories = ["algorithms", "parsing"]
