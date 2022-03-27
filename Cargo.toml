@@ -1,8 +1,8 @@
 [package]
-name = "spanish-vat-validator"
+name = "spain-vat-id"
 authors = ["José Aguilera <hello@jsgm.dev>"]
 version = "0.1.0"
-edition = "2022"
+edition = "2021"
 description = "Spanish VAT ID numbers validation/verification"
 license = "Apache-2.0"
 homepage = "https://github.com/jsgm/spanish-vat-validator"
@@ -15,3 +15,6 @@ keywords = [
     "validator"
 ]
 categories = ["algorithms", "parsing"]
+
+[lib]
+crate-type = ["cdylib"]
