@@ -2,7 +2,7 @@
 [![Crate](https://img.shields.io/crates/v/spain-vat-id.svg)](https://crates.io/crates/spain-vat-id)
 [![Minimum rustc version](https://img.shields.io/badge/rustc-1.59+-lightgray.svg)](https://github.com/rust-random/rand#rust-version-requirements)
 
-A dead simple crate for validating/verifying Spanish VAT ID numbers written in [Rust](rust-lang.org).
+A dead simple crate for validating/verifying Spanish VAT ID numbers written in [Rust](https://rust-lang.org).
 
 This crate allows you to easily check and verify the following ID numbers:
 - Documento Nacional de Identidad (DNI)
