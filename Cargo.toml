@@ -5,8 +5,8 @@ version = "0.1.0"
 edition = "2021"
 description = "Spanish VAT ID numbers validation/verification"
 license = "Apache-2.0"
-homepage = "https://github.com/jsgm/spanish-vat-validator"
-repository = "https://github.com/jsgm/spanish-vat-validator"
+homepage = "https://github.com/jsgm/spain-vat-id"
+repository = "https://github.com/jsgm/spain-vat-id"
 keywords = [
     "spain",
     "nif",
