@@ -23,3 +23,6 @@ include = [
 
 [lib]
 crate-type = ["cdylib"]
+
+[dependencies]
+thiserror = "1.0.57"

@@ -1,115 +1,117 @@
-#[allow(dead_code)]
-fn check_digit_nif(val: u32) -> char {
-    // Calculates the check digit based on the remainder.
-    let letters: [char; 23] = ['T','R','W','A','G','M','Y','F','P','D','X','B','N','J','Z','S','Q','V','H','L','C','K','E'];
-    let remainder = val % 23;
-    return letters[remainder as usize];
+#[derive(Debug, thiserror::Error)]
+pub enum Error {
+    #[error("Not valid: The length should be 9, [X/Y/Z] + [7 numbers] + [Check digit]. Got {0} characters.")]
+    BadLenght(usize),
+    #[error("Not valid: The first character should be a 'X', 'Y' or 'Z'. Got {0}")]
+    NieBadPrefix(char),
+    #[error("Not valid: Char '{0}' at position {1} is not a number")]
+    ExpectedNumeric(char, usize),
+    #[error("Not valid: The check digit should be '{0}' instead of '{1}'")]
+    InvalidCheckNumber(char, char),
 }
 
-#[allow(dead_code)]
-fn is_valid_nie(v: &str) -> (bool, String){
+pub fn check_digit_nif(val: u32) -> char {
+    // Calculates the check digit based on the remainder.
+    let letters: [char; 23] = [
+        'T', 'R', 'W', 'A', 'G', 'M', 'Y', 'F', 'P', 'D', 'X', 'B', 'N', 'J', 'Z', 'S', 'Q', 'V',
+        'H', 'L', 'C', 'K', 'E',
+    ];
+    let remainder = val % 23;
+    letters[remainder as usize]
+}
+
+pub fn is_valid_nie(v: &str) -> Result<(), Error> {
     // Validate a NIE - Número de Identidad de Extranjero (NIE)
     // https://es.wikipedia.org/wiki/N%C3%BAmero_de_identidad_de_extranjero
     //
     // Note that this function only considers a NIE valid under the INT/2058/2008 regulation.
-    if v.len() != 9{
-        return (false, String::from("Not valid: The length should be 9, [X/Y/Z] + [7 numbers] + [Check digit]"));
+    if v.len() != 9 {
+        Err(Error::BadLenght(v.len()))?
     }
 
-    let letter = &v[0..1].to_lowercase();
-    let mut value: i8 = -1;
+    let first_letter = v.chars().next().unwrap().to_ascii_lowercase();
 
-    if letter == "x"{
-        value = 0;
-    }
-    if letter == "y"{
-        value = 1;
-    }
-    if letter == "z"{
-        value = 2;
-    }
-    drop(letter);
-
-    if value == -1{
-        return (false, String::from("Not valid: The first character should be a 'X', 'Y' or 'Z'."));
-    }
+    let value = if first_letter == 'x' {
+        0
+    } else if first_letter == 'y' {
+        1
+    } else if first_letter == 'z' {
+        2
+    } else {
+        Err(Error::NieBadPrefix(first_letter))?
+    };
 
     let numbers = &v[1..v.len()];
-    let (valid, explain) = is_valid_nif(&String::from(format!("{}{}", value, numbers)));
-    return (valid, explain)
+    is_valid_nif(&format!("{}{}", value, numbers))
 }
 
-#[allow(dead_code)]
-fn is_valid_nif(v: &str) -> (bool, String){
+pub fn is_valid_nif(v: &str) -> Result<(), Error> {
     // Validate a NIF - Número de Identificación Fiscal (NIF)
     // https://es.wikipedia.org/wiki/N%C3%BAmero_de_identificaci%C3%B3n_fiscal
-    if v.len() != 9{
-        return (false, String::from("Not valid: The length should be 9, [8 numbers] + [Check digit]"));
+    if v.len() != 9 {
+        Err(Error::BadLenght(v.len()))?
     }
-    let letter = v.chars().last().unwrap();
-    let numbers = &v[..v.len()-1];
 
-    let mut index = 0;
-    for c in numbers.chars(){
-        index = index+1;
-        if !c.is_digit(10){
-            return (false, String::from(format!("Not valid: Char '{}' at position {} is not a number", c, index)))
+    let letter = v.chars().last().unwrap();
+    let numbers = &v[..v.len() - 1];
+
+    for (index, c) in numbers.chars().enumerate() {
+        if !c.is_ascii_digit() {
+            Err(Error::ExpectedNumeric(c, index + 1))?
         }
     }
-    drop(index);
 
-    let n = &numbers.parse::<u32>().unwrap();
-    let check_digit = check_digit_nif(*n);
-    if check_digit == letter{
-        return (true, String::from("Valid"));
+    let n = numbers.parse::<u32>().unwrap();
+    let check_digit = check_digit_nif(n);
+    if check_digit == letter {
+        return Ok(());
     }
-    return (false, String::from(format!("Not valid: The check digit should be '{}' instead of '{}'", check_digit, letter)));
+    Err(Error::InvalidCheckNumber(check_digit, letter))
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::check_digit_nif;
     use crate::is_valid_nie;
     use crate::is_valid_nif;
-    use crate::check_digit_nif;
 
     #[test]
-    fn test_valid_check_digit_nif(){
-        assert_eq!(check_digit_nif(54878787), "M".chars().next().unwrap());
-        assert_eq!(check_digit_nif(98457021), "R".chars().next().unwrap());
-        assert_eq!(check_digit_nif(47894211), "T".chars().next().unwrap());
-        assert_eq!(check_digit_nif(00000000), "T".chars().next().unwrap());
+    fn test_valid_check_digit_nif() {
+        assert_eq!(check_digit_nif(54878787), 'M');
+        assert_eq!(check_digit_nif(98457021), 'R');
+        assert_eq!(check_digit_nif(47894211), 'T');
+        assert_eq!(check_digit_nif(00000000), 'T');
     }
 
     #[test]
-    fn test_invalid_check_digit_nif(){
-        assert_ne!(check_digit_nif(54878787), "X".chars().next().unwrap());
-        assert_ne!(check_digit_nif(98457021), "T".chars().next().unwrap());
-        assert_ne!(check_digit_nif(47894211), "V".chars().next().unwrap());
-        assert_ne!(check_digit_nif(00000000), "D".chars().next().unwrap());
+    fn test_invalid_check_digit_nif() {
+        assert_ne!(check_digit_nif(54878787), 'X');
+        assert_ne!(check_digit_nif(98457021), 'T');
+        assert_ne!(check_digit_nif(47894211), 'V');
+        assert_ne!(check_digit_nif(00000000), 'D');
     }
 
     #[test]
-    fn test_invalid_nif(){
-        assert_eq!(is_valid_nif("53493710G").0, false);
-        assert_eq!(is_valid_nif("6´420582W").0, false);
-        assert_eq!(is_valid_nif("X6725600C").0, false);
-        assert_eq!(is_valid_nif("946967460D").0, false);
-        assert_eq!(is_valid_nif("01675401Z").0, false);
+    fn test_invalid_nif() {
+        is_valid_nif("53493710G").unwrap_err();
+        is_valid_nif("6´420582W").unwrap_err();
+        is_valid_nif("X6725600C").unwrap_err();
+        is_valid_nif("01675401Z").unwrap_err();
+        is_valid_nif("946967460D").unwrap_err();
     }
 
     #[test]
-    fn test_valid_nie(){
-        assert_eq!(is_valid_nie("Y5937943R").0, true);
-        assert_eq!(is_valid_nie("Z4132550F").0, true);
-        assert_eq!(is_valid_nie("X9675401Z").0, true);
-        assert_eq!(is_valid_nie("x9675401Z").0, true);
+    fn test_valid_nie() {
+        is_valid_nie("Y5937943R").unwrap();
+        is_valid_nie("Z4132550F").unwrap();
+        is_valid_nie("X9675401Z").unwrap();
+        is_valid_nie("x9675401Z").unwrap();
     }
 
     #[test]
-    fn test_invalid_nie(){
-        assert_eq!(is_valid_nie("Y59-7943R").0, false);
-        assert_eq!(is_valid_nie("7943R").0, false);
-        assert_eq!(is_valid_nie("096754014Z").0, false);
-        assert_eq!(is_valid_nie("Z6843868E").0, false);
+    fn test_invalid_nie() {
+        is_valid_nie("Y59-7943R").unwrap_err();
+        is_valid_nie("096754014Z").unwrap_err();
+        is_valid_nie("Z6843868E").unwrap_err();
     }
 }
