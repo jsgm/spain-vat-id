@@ -32,6 +32,9 @@ if !valid{
 }
 ```
 
+## Contributors
+Special thanks to [@dev-ardi](https://github.com/dev-ardi) for a rework and improvements.
+
 ## References
 - https://en.wikipedia.org/wiki/VAT_identification_number
 - https://es.wikipedia.org/wiki/N%C3%BAmero_de_identificaci%C3%B3n_fiscal
