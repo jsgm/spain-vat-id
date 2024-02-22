@@ -1,10 +1,10 @@
 [package]
 name = "spain-vat-id"
 authors = ["José Aguilera <hello@jsgm.dev>"]
-version = "0.1.0"
-edition = "2021"
+version = "0.1.2"
+edition = "2024"
 description = "Spanish VAT ID numbers validation/verification"
-license = "Apache-2.0"
+license = "MIT"
 homepage = "https://github.com/jsgm/spain-vat-id"
 repository = "https://github.com/jsgm/spain-vat-id"
 keywords = [
