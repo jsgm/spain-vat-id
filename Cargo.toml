@@ -2,7 +2,7 @@
 name = "spain-vat-id"
 authors = ["José Aguilera <hello@jsgm.dev>"]
 version = "0.1.2"
-edition = "2024"
+edition = "2021"
 description = "Spanish VAT ID numbers validation/verification"
 license = "MIT"
 homepage = "https://github.com/jsgm/spain-vat-id"
