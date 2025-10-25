@@ -1,7 +1,7 @@
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("Not valid: The length should be 9, [X/Y/Z] + [7 numbers] + [Check digit]. Got {0} characters.")]
-    BadLenght(usize),
+    BadLength(usize),
     #[error("Not valid: The first character should be a 'X', 'Y' or 'Z'. Got {0}")]
     NieBadPrefix(char),
     #[error("Not valid: Char '{0}' at position {1} is not a number")]
@@ -10,35 +10,34 @@ pub enum Error {
     InvalidCheckNumber(char, char),
 }
 
+const NIF_LETTERS: [char; 23] = [
+    'T', 'R', 'W', 'A', 'G', 'M', 'Y', 'F', 'P', 'D', 'X', 'B', 'N', 'J', 'Z', 'S', 'Q', 'V',
+    'H', 'L', 'C', 'K', 'E',
+];
+
+#[inline]
 pub fn check_digit_nif(val: u32) -> char {
     // Calculates the check digit based on the remainder.
-    let letters: [char; 23] = [
-        'T', 'R', 'W', 'A', 'G', 'M', 'Y', 'F', 'P', 'D', 'X', 'B', 'N', 'J', 'Z', 'S', 'Q', 'V',
-        'H', 'L', 'C', 'K', 'E',
-    ];
     let remainder = val % 23;
-    letters[remainder as usize]
+    NIF_LETTERS[remainder as usize]
 }
 
 pub fn is_valid_nie(v: &str) -> Result<(), Error> {
     // Validate a NIE - Número de Identidad de Extranjero (NIE)
     // https://es.wikipedia.org/wiki/N%C3%BAmero_de_identidad_de_extranjero
-    //
-    // Note that this function only considers a NIE valid under the INT/2058/2008 regulation.
+    // Only considers validity under INT/2058/2008 regulation.
+
     if v.len() != 9 {
-        Err(Error::BadLenght(v.len()))?
+        Err(Error::BadLength(v.len()))?
     }
 
     let first_letter = v.chars().next().unwrap().to_ascii_lowercase();
 
-    let value = if first_letter == 'x' {
-        0
-    } else if first_letter == 'y' {
-        1
-    } else if first_letter == 'z' {
-        2
-    } else {
-        Err(Error::NieBadPrefix(first_letter))?
+    let value = match first_letter {
+        'x' => 0,
+        'y' => 1,
+        'z' => 2,
+        other => return Err(Error::NieBadPrefix(other)),
     };
 
     let numbers = &v[1..v.len()];
@@ -49,10 +48,10 @@ pub fn is_valid_nif(v: &str) -> Result<(), Error> {
     // Validate a NIF - Número de Identificación Fiscal (NIF)
     // https://es.wikipedia.org/wiki/N%C3%BAmero_de_identificaci%C3%B3n_fiscal
     if v.len() != 9 {
-        Err(Error::BadLenght(v.len()))?
+        Err(Error::BadLength(v.len()))?
     }
 
-    let letter = v.chars().last().unwrap();
+    let letter = v.chars().last().unwrap().to_ascii_uppercase();
     let numbers = &v[..v.len() - 1];
 
     for (index, c) in numbers.chars().enumerate() {
@@ -92,7 +91,18 @@ mod tests {
     }
 
     #[test]
+    fn test_valid_nif() {
+        is_valid_nif("24591177Z").unwrap();
+        is_valid_nif("21178533h").unwrap();
+        is_valid_nif("84731432F").unwrap();
+        is_valid_nif("65553805X").unwrap();
+        is_valid_nif("97294190g").unwrap();
+    }
+
+    #[test]
     fn test_invalid_nif() {
+        is_valid_nif("").unwrap_err();
+        is_valid_nif("5393710G ").unwrap_err();
         is_valid_nif("53493710G").unwrap_err();
         is_valid_nif("6´420582W").unwrap_err();
         is_valid_nif("X6725600C").unwrap_err();
