@@ -34,8 +34,7 @@ if !valid{
 ```
 
 ## References
+- [Cálculo del dígito de control del NIF/NIE](https://www.interior.gob.es/opencms/es/servicios-al-ciudadano/tramites-y-gestiones/dni/calculo-del-digito-de-control-del-nif-nie/)
 - https://en.wikipedia.org/wiki/VAT_identification_number
 - https://es.wikipedia.org/wiki/N%C3%BAmero_de_identificaci%C3%B3n_fiscal
 - https://es.wikipedia.org/wiki/N%C3%BAmero_de_identidad_de_extranjero
-- http://www.interior.gob.es/web/servicios-al-ciudadano/dni/calculo-del-digito-de-control-del-nif-nie
-
