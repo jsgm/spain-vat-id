@@ -1,7 +1,7 @@
 [package]
 name = "spain-vat-id"
 authors = ["José Aguilera <hello@jsgm.dev>"]
-version = "0.1.3"
+version = "0.1.4"
 edition = "2021"
 description = "Spanish VAT ID numbers validation/verification"
 license = "MIT"
@@ -22,7 +22,7 @@ include = [
 ]
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["lib"]
 
 [dependencies]
 thiserror = "1.0.57"

@@ -16,28 +16,32 @@ const NIF_LETTERS: [char; 23] = [
 ];
 
 #[inline]
-pub fn check_digit_nif(val: u32) -> char {
+pub fn check_nif_digit(val: u32) -> char {
     // Calculates the check digit based on the remainder.
     let remainder = val % 23;
     NIF_LETTERS[remainder as usize]
 }
 
+// Deprecated since 0.1.4: use `check_nif_digit` instead.
+// Kept for backwards compatibility with versions <= 0.1.3.
+#[deprecated(since = "0.1.4", note = "use `check_nif_digit` instead")]
+pub use check_nif_digit as check_digit_nif;
+
 pub fn is_valid_nie(v: &str) -> Result<(), Error> {
     // Validate a NIE - Número de Identidad de Extranjero (NIE)
     // https://es.wikipedia.org/wiki/N%C3%BAmero_de_identidad_de_extranjero
     // Only considers validity under INT/2058/2008 regulation.
-
     if v.len() != 9 {
-        Err(Error::BadLength(v.len()))?
+        return Err(Error::BadLength(v.len()));
     }
 
-    let first_letter = v.chars().next().unwrap().to_ascii_lowercase();
+    let first_letter = v.chars().next().unwrap();
 
-    let value = match first_letter {
+    let value = match first_letter.to_ascii_lowercase() {
         'x' => 0,
         'y' => 1,
         'z' => 2,
-        other => return Err(Error::NieBadPrefix(other)),
+        _ => return Err(Error::NieBadPrefix(first_letter)),
     };
 
     let numbers = &v[1..v.len()];
@@ -48,7 +52,7 @@ pub fn is_valid_nif(v: &str) -> Result<(), Error> {
     // Validate a NIF - Número de Identificación Fiscal (NIF)
     // https://es.wikipedia.org/wiki/N%C3%BAmero_de_identificaci%C3%B3n_fiscal
     if v.len() != 9 {
-        Err(Error::BadLength(v.len()))?
+        return Err(Error::BadLength(v.len()));
     }
 
     let letter = v.chars().last().unwrap().to_ascii_uppercase();
@@ -56,38 +60,39 @@ pub fn is_valid_nif(v: &str) -> Result<(), Error> {
 
     for (index, c) in numbers.chars().enumerate() {
         if !c.is_ascii_digit() {
-            Err(Error::ExpectedNumeric(c, index + 1))?
+            return Err(Error::ExpectedNumeric(c, index + 1));
         }
     }
 
     let n = numbers.parse::<u32>().unwrap();
-    let check_digit = check_digit_nif(n);
+    let check_digit = check_nif_digit(n);
     if check_digit == letter {
         return Ok(());
     }
+
     Err(Error::InvalidCheckNumber(check_digit, letter))
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::check_digit_nif;
+    use crate::check_nif_digit;
     use crate::is_valid_nie;
     use crate::is_valid_nif;
 
     #[test]
-    fn test_valid_check_digit_nif() {
-        assert_eq!(check_digit_nif(54878787), 'M');
-        assert_eq!(check_digit_nif(98457021), 'R');
-        assert_eq!(check_digit_nif(47894211), 'T');
-        assert_eq!(check_digit_nif(00000000), 'T');
+    fn test_valid_check_nif_digit() {
+        assert_eq!(check_nif_digit(54878787), 'M');
+        assert_eq!(check_nif_digit(98457021), 'R');
+        assert_eq!(check_nif_digit(47894211), 'T');
+        assert_eq!(check_nif_digit(00000000), 'T');
     }
 
     #[test]
-    fn test_invalid_check_digit_nif() {
-        assert_ne!(check_digit_nif(54878787), 'X');
-        assert_ne!(check_digit_nif(98457021), 'T');
-        assert_ne!(check_digit_nif(47894211), 'V');
-        assert_ne!(check_digit_nif(00000000), 'D');
+    fn test_invalid_check_nif_digit() {
+        assert_ne!(check_nif_digit(54878787), 'X');
+        assert_ne!(check_nif_digit(98457021), 'T');
+        assert_ne!(check_nif_digit(47894211), 'V');
+        assert_ne!(check_nif_digit(00000000), 'D');
     }
 
     #[test]
@@ -102,12 +107,46 @@ mod tests {
     #[test]
     fn test_invalid_nif() {
         is_valid_nif("").unwrap_err();
+        is_valid_nif(" 123 ").unwrap_err();
+        is_valid_nif(" 123 ").unwrap_err();
         is_valid_nif("5393710G ").unwrap_err();
         is_valid_nif("53493710G").unwrap_err();
         is_valid_nif("6´420582W").unwrap_err();
         is_valid_nif("X6725600C").unwrap_err();
         is_valid_nif("01675401Z").unwrap_err();
         is_valid_nif("946967460D").unwrap_err();
+
+        // Spaces
+        is_valid_nif("         ").unwrap_err();  // 9 spaces
+        is_valid_nif(" 5393710G").unwrap_err();
+        is_valid_nif("539 3710G").unwrap_err();
+
+        // Too short
+        is_valid_nif("1").unwrap_err();
+        is_valid_nif("12345678").unwrap_err();
+        is_valid_nif("1234567").unwrap_err();
+
+        // Too long
+        is_valid_nif("123456789T").unwrap_err();
+        is_valid_nif("1234567890T").unwrap_err();
+
+        // Wrong check digit
+        is_valid_nif("24591177A").unwrap_err(); // Correct is Z
+        is_valid_nif("21178533X").unwrap_err(); // Correct is H
+        is_valid_nif("84731432Z").unwrap_err(); // Correct is F
+
+        // Special characters
+        is_valid_nif("1234.567T").unwrap_err();
+        is_valid_nif("123-5678T").unwrap_err();
+        is_valid_nif("1234567\nT").unwrap_err();
+        is_valid_nif("1234567\tT").unwrap_err();
+
+        // All letters
+        is_valid_nif("ABCDEFGHT").unwrap_err();
+
+        // Unicode
+        is_valid_nif("1234567ñT").unwrap_err();
+        is_valid_nif("ñ234567T").unwrap_err();
     }
 
     #[test]

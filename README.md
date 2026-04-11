@@ -18,19 +18,26 @@ cargo add spain-vat-id
 
 ## Functions
 ```rust
-nif_check_digit(val: u32) -> char
-is_valid_nie(v: &str) -> (bool, String)
-is_valid_nif(v: &str) -> (bool, String)
+check_nif_digit(val: u32) -> char
+is_valid_nif(v: &str) -> Result<(), Error>
+is_valid_nie(v: &str) -> Result<(), Error>
 ```
 
 ```rust
-// NIF checking
-let nif = "9874`457T";
-let (valid, explain) = is_valid_nif(nif);
-if !valid{
-    println!("{}", explain);
-    // Not valid: Char '`' at position 5 is not a number
+// NIF
+match is_valid_nif("9874`457T") {
+    Ok(()) => println!("Valid!"),
+    Err(e) => println!("{}", e),
 }
+
+// NIE
+match is_valid_nie("Y5937943R") {
+    Ok(()) => println!("Valid!"),
+    Err(e) => println!("{}", e),
+}
+
+// Get check digit
+let digit = check_nif_digit(24591177); // 'Z'
 ```
 
 ## References
